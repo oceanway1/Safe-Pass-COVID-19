@@ -1,0 +1,75 @@
+var express = require("express");
+var router = express.Router();
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  user: 'postgres',
+  password: 'example',
+  host: 'localhost',
+  port: 5672,
+  database: 'project'
+})
+
+router.post("/", (req, res) => {
+  const customer_id = req.body.customer_id
+  const store_id = req.body.store_id
+  const visiting_day = req.body.visiting_day
+  const visiting_hour = req.body.visiting_hour
+
+  return pool.query(`
+    INSERT INTO reservations (customer_id, store_id, visiting_day, visiting_hour)
+    VALUES ($1::integer, $2::integer, $3::integer, $4::VARCHAR)
+  `,
+    [customer_id, store_id, visiting_day, visiting_hour])
+    .then(reservations => {
+      res.send(reservations.rows)
+    })
+    .catch(err => {
+      console.error('query error', err.stack)
+      res.send("ERROR");
+    });
+})
+
+
+router.get("/:userId", (req, res) => {
+  const userId = req.params.userId
+
+
+  pool.query(`
+    SELECT *
+    FROM reservations
+    WHERE customer_id = ${userId}
+    `)
+    .then(result => {
+      console.log(result.rows);
+      res.send(result.rows)
+    })
+    .catch(err => {
+      console.error('query error', err.stack)
+      res.send("ERROR");
+    });
+
+});
+
+
+router.delete("/", (req, res) => {
+  const userId = req.params.userId
+
+
+  pool.query(`
+    SELECT *
+    FROM reservations
+    WHERE customer_id = ${userId}
+    `)
+    .then(result => {
+      console.log(result.rows);
+      res.send(result.rows)
+    })
+    .catch(err => {
+      console.error('query error', err.stack)
+      res.send("ERROR");
+    });
+
+});
+
+module.exports = router;
